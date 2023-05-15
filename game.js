@@ -17,9 +17,18 @@ console.log({canvasSize, elementsSize});
 game.font = elementsSize  + "px verdana";
 game.textAlign ="end";
 
-for(let i = 1; i<=10; i++){
+const map = maps[0];
+const mapRows = map.trim().split("\n");
+const mapRowsCols = mapRows.map(row => row.trim().split(""));
+console.log(map, mapRows, mapRowsCols);
+/*si yo uso el atributo .split lo que hara es partir la oración por fracies o silavas. ejemplo: si pongo en la consola //"hola mundo como estas".split(" ")// lo que hara es partirme la frace en palabras hola/mundo/como/estas/, pero si lo hago sin espacio en "" lo que hara es partirlo por cilavas // "hola mundo".split("")   -->> h.o.l.a. .m.u.n.d.o  todos en forma de arreglos*/
 
-    game.fillText(emojis["X"], elementsSize * i, elementsSize);
+/*el .trim nos ayuda a limpiar los espacios en blancos de la cadena de texto a la que se le utilizo .split, para limpiar los arrays */
+
+for (let row = 1; row<=10; row++){
+    for (let col = 1; col <= 10; col++) {
+        game.fillText(emojis[mapRowsCols[row - 1][col - 1]] , elementsSize * col, elementsSize  * row);
+    }
 }
 
 

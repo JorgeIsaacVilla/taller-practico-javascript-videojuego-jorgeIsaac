@@ -4,9 +4,12 @@ const btnUp = document.querySelector("#up");
 const btnLeft = document.querySelector("#left");
 const btnRight = document.querySelector("#right");
 const btnDown = document.querySelector("#down");
+const spanLives = document.querySelector("#lives");
 
 let canvasSize;
 let elementsSize;
+let level = 0;
+let lives = 3;
 
 const playerPosition = {
     x: undefined,
@@ -17,6 +20,9 @@ const giftPosition = {
     x: undefined,
     y: undefined,
 };
+
+let enemyPositions = [];
+
 
 window.addEventListener("load", setCanvasSize); /*Esto ayuda para decirle al algoritmo que apenas termine de cargar el html, cargue ensequida este documento. */
 window.addEventListener("resize", setCanvasSize);  /*"resize" esta indicación le dice al algoritmo que cuando cambie de tamaño la pantalla (resize) recargue nuevamente el juego */
@@ -46,28 +52,42 @@ console.log({ canvasSize, elementsSize });
 game.font = elementsSize + 'px Verdana';
 game.textAlign = 'end';
 
-const map = maps[0];
-const mapRows = map.trim().split('\n');
-const mapRowCols = mapRows.map(row => row.trim().split(''));
-console.log({map, mapRows, mapRowCols});
+const map = maps[level];
 
-game.clearRect(0,0,canvasSize, canvasSize);
+    if(!map) {
+        gameWind();
+        return;
+    }
 
-mapRowCols.forEach((row, rowI) => {
-    row.forEach((col, colI) => {
-      const emoji = emojis[col];
-      const posX = elementsSize * (colI + 1);
-      const posY = elementsSize * (rowI + 1);
+    const mapRows = map.trim().split('\n');
+    const mapRowCols = mapRows.map(row => row.trim().split(''));
+    console.log({map, mapRows, mapRowCols});
+
+    showLives();
+
+    enemyPositions = [];
+    game.clearRect(0,0,canvasSize, canvasSize);
+
+    mapRowCols.forEach((row, rowI) => {
+        row.forEach((col, colI) => {
+        const emoji = emojis[col];
+        const posX = elementsSize * (colI + 1);
+        const posY = elementsSize * (rowI + 1);
 
       if (col == 'O') {
         if (!playerPosition.x && !playerPosition.y) {
-          playerPosition.x = posX;
-          playerPosition.y = posY;
-          console.log({playerPosition});
-        }
-      } else if ( col == "I") {
-        giftPosition.x = posX;
-        giftPosition.y = posY;
+            playerPosition.x = posX;
+            playerPosition.y = posY;
+            console.log({playerPosition});
+          }
+        } else if (col == 'I') {
+            giftPosition.x = posX;
+            giftPosition.y = posY;
+      } else if (col =="X") {
+        enemyPositions.push({
+            x: posX,
+            y: posY,
+        });
       }
       
       game.fillText(emoji, posX, posY);
@@ -111,6 +131,7 @@ for (let row = 1; row<=10; row++){
 
 
 function movePlayer() {
+
     const giftCollisionX = playerPosition.x.toFixed(3) == giftPosition.x.toFixed(3);
     const giftCollisionY = playerPosition.y.toFixed(3) == giftPosition.y.toFixed(3);
     
@@ -118,12 +139,55 @@ function movePlayer() {
 
 
     if(giftCollision){
-        console.log("subiste de nvl")
+        console.log("felicidades, ganaste")
+        levelWin();
     }
+
+    const enemyCollision = enemyPositions.find(enemy => {
+        const enemyCollisionX = enemy.x.toFixed(3) == playerPosition.x.toFixed(3);
+        const enemyCollisionY = enemy.y.toFixed(3) == playerPosition.y.toFixed(3);
+        return enemyCollisionX && enemyCollisionY;
+      });
+      
+      if (enemyCollision) {
+        console.log('deteccion de colición');
+        levelFail();
+      }
 
     game.fillText(emojis['PLAYER'], playerPosition.x, playerPosition.y);
   }
 
+  function levelWin() {
+    console.log("subieste de nivle")
+    level++;
+    startGame();
+  }
+
+  function levelFail() {
+    console.log("cocaste contra un enemigo")
+    lives--;
+
+    if(lives <= 0) { 
+        level = 0;
+        lives = 3;
+    }
+    playerPosition.x = undefined;
+    playerPosition.y = undefined;
+    startGame();
+  }
+
+  function gameWind(){
+    console.log("Ganaste el juego")
+  }
+
+  function showLives(){
+    const heartsArray = Array(lives).fill(emojis["HEART"]);
+
+
+    spanLives.innerHTML="";
+    heartsArray.forEach(heart => spanLives.append(heart));
+    //spanLives.innerHTML = heartsArray;   /*esta fue mi solución */
+  }
 
 /*para escuchar los eventos de los botones del teclado */
 window.addEventListener("keydown", moveBykeys);
@@ -161,7 +225,7 @@ function moveLeft(){
 }
 function moveRight(){
 
-    if((playerPosition.x + elementsSize)> (canvasSize + 40)){
+    if((playerPosition.x + elementsSize) > (canvasSize + 40)){
         console.log("OUT");
     }else{
         playerPosition.x += elementsSize;

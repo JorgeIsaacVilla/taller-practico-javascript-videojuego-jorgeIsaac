@@ -5,9 +5,16 @@ const btnLeft = document.querySelector("#left");
 const btnRight = document.querySelector("#right");
 const btnDown = document.querySelector("#down");
 const spanLives = document.querySelector("#lives");
+const spanTime = document.querySelector("#time")
+const spanRecord = document.querySelector("#record");
+const pResult = document.querySelector("#result");
+
 
 let canvasSize;
 let elementsSize;
+let timeStart;
+let timePlayer;
+let TimeInterval;
 let level = 0;
 let lives = 3;
 
@@ -27,19 +34,28 @@ let enemyPositions = [];
 window.addEventListener("load", setCanvasSize); /*Esto ayuda para decirle al algoritmo que apenas termine de cargar el html, cargue ensequida este documento. */
 window.addEventListener("resize", setCanvasSize);  /*"resize" esta indicación le dice al algoritmo que cuando cambie de tamaño la pantalla (resize) recargue nuevamente el juego */
 
+/*
+function fixNumber(n){
+    return  Number(n.toFixed(2));
+}
+*/
 
 function setCanvasSize () {
     if (window.innerHeight > window.innerWidth) {
-        canvasSize = window.innerWidth * 0.8;
+        canvasSize = window.innerWidth * 0.7;
     } else {
-        canvasSize = window.innerHeight * 0.8;
+        canvasSize = window.innerHeight * 0.7;
     }
+
+    canvasSize = Number(canvasSize.toFixed(0));
     
-    canvas.setAttribute("width", canvasSize)
-    canvas.setAttribute("height", canvasSize)
+    canvas.setAttribute("width", canvasSize);
+    canvas.setAttribute("height", canvasSize);
     
     elementsSize = canvasSize / 10;
 
+    playerPosition.x = undefined;
+    playerPosition.y = undefined;
     startGame();
 }
 
@@ -57,6 +73,12 @@ const map = maps[level];
     if(!map) {
         gameWind();
         return;
+    }
+
+    if(!timeStart){
+        timeStart = Date.now();
+        TimeInterval = setInterval(showTime,100);
+        showRecord ();
     }
 
     const mapRows = map.trim().split('\n');
@@ -170,6 +192,7 @@ function movePlayer() {
     if(lives <= 0) { 
         level = 0;
         lives = 3;
+        timeStart = undefined;
     }
     playerPosition.x = undefined;
     playerPosition.y = undefined;
@@ -177,16 +200,43 @@ function movePlayer() {
   }
 
   function gameWind(){
-    console.log("Ganaste el juego")
+    console.log("Ganaste el juego");
+    clearInterval(TimeInterval);
+
+    const playerTime = Date.now() - timeStart
+    const recordTime = localStorage.getItem("record_time");
+    
+    if(recordTime) {
+        if ( recordTime >= playerTime) {
+            localStorage.setItem("record_time",playerTime);
+            console.log ("Genial, superaste el record");
+            pResult.innerHTML = "Genial, superaste el record 🎉✌😎🤞";
+        } else {
+            console.log ("No superaste el record");
+            pResult.innerHTML = "No superaste el record 🤔 intentalo nuevamente 😃✨";   
+        }
+    } else {
+        localStorage.setItem("record_time", playerTime);
+        pResult.innerHTML = "Genial, llegaste hasta el final. buen record! 😉⌛✔"; 
+    }
+    console.log({recordTime, playerTime})
   }
 
-  function showLives(){
+  function showLives (){
     const heartsArray = Array(lives).fill(emojis["HEART"]);
 
 
     spanLives.innerHTML="";
     heartsArray.forEach(heart => spanLives.append(heart));
     //spanLives.innerHTML = heartsArray;   /*esta fue mi solución */
+  }
+
+  function showTime () {
+    spanTime.innerHTML = Date.now() - timeStart;
+  }
+
+  function showRecord () {
+    spanRecord.innerHTML = localStorage.getItem("record_time");
   }
 
 /*para escuchar los eventos de los botones del teclado */
@@ -241,3 +291,32 @@ function moveDown(){
     startGame();
     }
 }
+
+/*setInterval(()=>
+console.log ("hola mundo"), 1000)  lo que hará este atriburo, es que imprimira hola mundo durante un segundo, una vez por cada segundo.
+
+para detener la función primero tenemos que convertirlo en variable:
+
+const intervalito = setInterval(()=>
+console.log ("hola mundo"), 1000)
+
+y luego podemos llamar el atributo o función //>  clearInterval(invervalito)
+*/
+
+/*setTimeout(()=>
+console.log ("hola mundo"), 1000)  lo que hace es hacer una impresión y esperar el tiempo que se cumpla, para permitir el acceso al atributo*/
+
+/*el atributo //> Date <// es otro atributo de javascript //> Date.now() <// */
+
+
+/*localSotrage   <// significa almacenamiento local en nuestro navegador. podemos pedir al navegador que guarde alguna información por mi.
+
+//> localStorage.getItem <// es para leer alguna informacion que este dentro del localStorage.
+
+//>localStorage.setItem <// para guardar la variable por primera vez ejemplo: localStorage.setItem("patito", "el patito se llama juan");  esa varibale va a seguir ahi aunque recarguemos la pagina, se apage el PC, o cualquier otra cosa, la variable siempre existira porque lo guardo el navegador.
+
+//>localStorage.removetItem <//
+
+
+
+*/
